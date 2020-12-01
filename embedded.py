@@ -25,14 +25,14 @@ class Embedded(object):
 		self.can = self.Candidates()
 		self.seg_size, self.msg_len = self.movWin()
 
-	#Berechnung Auto-Cepstrum ohne Fensterung
+	# Auto Ceptrum with windowing
 	def getAC(self, data):
 		spec = np.fft.fft(data)
 		spec = np.abs(np.log(spec))**2
 		ceps = np.abs(np.fft.ifft(spec))
 
 		return ceps
-	#Copy Objekt
+	#Copy object
 	def copy(self):
 		copy = Embedded(librosa.util.example_audio_file(), 0, 10)
 		copy.y = self.y
@@ -43,7 +43,7 @@ class Embedded(object):
 
 		return copy		
 
-	#Cepstrum mit Fenster
+	#Cepstrum with windowing
 	def Ceps(self, array):
 		hann = np.hanning(array.size)
 		x = np.fft.fft(array*hann)
@@ -51,7 +51,7 @@ class Embedded(object):
 		ceps = np.abs(np.fft.ifft(x))
 
 		return ceps
-	#Berechnung Verzoegerung-Kandidaten
+	#estimat delay candidates
 	def Candidates(self):
 		ceps_mean = np.mean(self.ceps[8:44])
 		peaks, pros = find_peaks(self.ceps[0:45], distance=3, width=0.9, height=ceps_mean)
@@ -64,7 +64,7 @@ class Embedded(object):
 		result = np.append(result, np.where(self.ceps == sort[1]))
 		return result
 
-	#Moving Window zur Berechnung der Segmentgroesse
+	#Moving Window for segment size
 	def movWin(self):
 		w = 2000
 		s = 0
@@ -98,7 +98,7 @@ class Embedded(object):
 		print(msg_len)
 		return seg_size, msg_len
 
-	#Rueckgewinnung der Nachricht
+	#decoding message
 	def decode(self):
 		msg = Message('')
 		for i in range(2, int(self.msg_len)):
@@ -120,7 +120,7 @@ class Embedded(object):
 		print(msg.msg)
 
 
-	#Power-Cepstrum mit Fensterung
+	#Power-Cepstrum with windowing
 	def hanniPC(self, array):
 		hann = np.hanning(array.size)
 		x = np.fft.fft(array*hann)
@@ -129,13 +129,13 @@ class Embedded(object):
 		ceps = np.abs(np.fft.ifft(x))**2
 		return ceps
 
-	#Auto-Cepstrum mit Fensterung
+	#Auto-Cepstrum with windowing
 	def hanniAC(self, array):
 		hann = np.hanning(array.size)
 		ceps = np.abs(np.fft.ifft(np.log((np.fft.fft(array*hann)))**2))
 		return ceps
 
-	#Cepstrum-Ueberlagerung
+	#cepstrum overlay
 	def combinedHanni(self):
 		n = 8
 		size =  int(math.floor(self.size/n))*n
@@ -148,7 +148,7 @@ class Embedded(object):
 
 		return ceps
 
-	#Berechnung eines Selbstkorresponierendes echo
+	#build self-referential echo
 	def selfEcho(self, delay, m, n):
 		copy = self.copy()
 		
@@ -166,14 +166,14 @@ class Embedded(object):
 
 		return copy
 
-	#Auto-Cepstrum mit 
+	#Auto-Cepstrum
 	def ACSeg(self, array):
 		x = (np.fft.fft(array))
 		x = np.abs(np.log(x))**2
 		AC = np.abs(np.fft.ifft(x))
 		return AC
 
-	#Berchnung Segmentgroesse (alt)
+	#Berchnung Segmentgroesse (old)
 	def segSize(self):
 
 		m = 0

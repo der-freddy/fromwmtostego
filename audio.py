@@ -1,7 +1,7 @@
 
 
 ##########################################################
-#AUDIO-KLASSE ZUR ERSTELLUNG VON SIGNAL MIT WASSERZEICHEN#
+#AUDIO-CLASS FOR EMBEDDING PROCESS#
 ##########################################################
 
 
@@ -28,7 +28,7 @@ class Audio(object):
 
 		self.ratio0 = 1
 		self.ratio1 = 1
-	#Copy Objekt
+	#Copy Object
 	def copy(self):
 		return Audio(self.path, self.export,self.name, self.os, self.du)
 
@@ -45,14 +45,14 @@ class Audio(object):
 	def setName(self, name):
 		self.name = name
 
-	#Cepstrum fuer ein variables Segment
+	#Ceptrum of a segment (m=beginn, n=end, in sample points)
 	def CSeg(self, m, n):
 		x = (np.fft.fft(self.y[m:n]))
 		x = np.abs(np.log(x))
 		ceps = np.abs(np.fft.ifft(x))
 		return ceps 
 
-	#Komplexes Cepstrum mit Fensterung
+	#Complex Ceptrum with windowing
 	def Ceps(self, array):
 		hann = np.hanning(array.size)
 		x = np.fft.fft(array*hann)
@@ -60,7 +60,7 @@ class Audio(object):
 		ceps = np.abs(np.fft.ifft(x))
 
 		return ceps
-	#Power-Cepstrum mit Fesnterung
+	#Power Cepstrum with windowing
 	def hanniPC(self, array):
 		hann = np.hanning(array.size)
 		x = np.fft.fft(array*hann)
@@ -69,13 +69,13 @@ class Audio(object):
 		ceps = np.abs(np.fft.ifft(x))**2
 		return ceps
 
-	#Auto-Cepstrum mit Fensterung
+	#Autocepstrum with windowing
 	def hanniAC(self, array):
 		hann = np.hanning(array.size)
 		ceps = np.abs(np.fft.ifft(np.log((np.fft.fft(array*hann)))**2))
 		return ceps
 
-	# Darstellung von Auto-Korrelation
+	# Plot Auto-Correlation
 	def plotAc(self):
 		ac = np.correlate(self.ceps, self.ceps, mode='full')
 		ac = ac[:ac.size//2]
@@ -85,7 +85,7 @@ class Audio(object):
 		plt.title('Autocepstrum')
 		plt.show()
 
-	#Darstelung Komplex-Cepstrum
+	# Plot Cepstrum
 	def plotCeps(self):
 		plt.plot(self.ceps)
 		plt.xlabel('Quefrency (frames)')
@@ -93,7 +93,7 @@ class Audio(object):
 		plt.title('Cepstrum')
 		plt.show()
 
-	#Darstellung Spektrum
+	#Plot Spectrum
 	def plotSpec(self):
 		absfft = np.abs(librosa.stft(self.y))
 		librosa.display.specshow(librosa.amplitude_to_db(absfft,ref=np.max),y_axis='log', x_axis='time')
@@ -102,7 +102,7 @@ class Audio(object):
 		plt.tight_layout()
 		plt.show()
 
-	#Mischung des OE-Signals und Echo-Signal
+	#Generate Echo Signal
 	def simpleMix(self, echo):
 		stego = self.copy()
 		for i in range(0, stego.size):
@@ -111,7 +111,7 @@ class Audio(object):
 
 		return stego
 
-	#Erstellung Negativecho
+	#Negetiv Echo
 	def buildNecho(self, delay, ratio):
 		echo = self.copy()
 		y = echo.y
@@ -126,7 +126,7 @@ class Audio(object):
 
 		return echo
 
-	#Erstellung Doppel-Echo
+	#Back-Forward-Echo
 	def buildDecho(self, delay, ratio):
 		echo = self.copy()
 		y = np.zeros(self.size)
@@ -138,7 +138,7 @@ class Audio(object):
 		echo.size = self.size
 		return echo
 
-	#Erstellung des Echos mit Kernel
+	#Echo with defined kernels
 	def buildEcho(self, delay, ratio):
 		echo = self.copy()
 		y = echo.y
@@ -153,7 +153,7 @@ class Audio(object):
 
 		return echo
 
-	#Crossfader-methode
+	#Crossfader method (alternative mixer signals)
 	def crossfader(self, m,echo):
 			
 		#self.y[m] = self.y[m]*0.5 + echo.y[m]*0.5
@@ -161,7 +161,7 @@ class Audio(object):
 			f = 0.1
 			self.y[m-i]=(self.y[m-i]*f*i)+(echo.y[m-i]*f*(10-i))
 
-	#Daempfung des OE-Signals
+	#dampling oe-signal
 	def oe_decay(self, msg):
 		oe_copy = self.copy()
 		seg = msg.getMbLen()
@@ -180,7 +180,7 @@ class Audio(object):
 
 		return oe_copy
 
-	#Erstellung kompletten Echo-Signals
+	#Build echo signal
 	def EchoSignal(self, echo0, echo1, msg):
 
 		t = np.linspace(0, 2*np.pi, self.size, endpoint=True)
@@ -212,16 +212,16 @@ class Audio(object):
 
 		echo.y = echo.y
 
-		#Sinus-Verknuepfung
+		#Sine link
 		#echo.y = echo.y*S
 
 		return echo
-	#Speicher Traegersignal
+	#write carrier signal
 	def write(self):
 		path = self.export+self.name
 		lro.output.write_wav(path, self.y, self.getSampling())
 
-	# Einbettung
+	# Embedding
 	def encode(self, msg, export_path):
 
 		if msg.msg == '':

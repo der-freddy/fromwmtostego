@@ -16,23 +16,23 @@ class Message(object):
 		#self.mb.frombytes(msg.encode('utf-8'))
 		self.msg_len = len(msg)
 		self.mb_len = (self.msg_len*8)+2
-	#Get String-Nachricht
+	#Get message string
 	def getMsg(self):
 		return self.msg
-	#Get Nachricht in bit
+	#Get message in bits
 	def getMb(self):
 		return self.mb
-	#Get nachrichtenlaenge
+	#Get message length
 	def getMsgLen(self):
 		return self.msg_len
-	#Get bitlaenge
+	#get bit length
 	def getMbLen(self):
 		return self.mb_len
-	#Set nachrichtenbits
+	#Set message bits
 	def setMB(self, mb):
 		self.mb = mb
 		self.bitToString()
-	#Konvertiere bit to string
+	#convert bit to string
 	def bitToString(self):
 		#self.msg = self.mb[2:].tostring()
 		self.msg = bitarray.bitarray(self.mb[2:]).tobytes().decode('utf-8')
@@ -45,7 +45,7 @@ class Message(object):
 		self.mb = mb
 		self.bitToString()
 
-
+	#check methode (not used)
 	def checkBits(self):
 		print(self.mb)
 		a = np.fromstring(self.mb.unpack(), dtype=bool)

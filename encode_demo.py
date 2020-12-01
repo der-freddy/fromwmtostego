@@ -6,19 +6,19 @@ from message import Message
 #Embedding/Encoding
 import_path = 'import/'
 export_path = 'export/'
-#Nachrichten-Objekt
+#Nachrichten Object
 msg = Message('R')
 
 print(msg.mb_len)
 
 
-#Fuer alle Dateien in import_path
+#for all files in folder import_path
 for file in os.listdir(import_path):
 
 	path = import_path+file
-	#Objekterstellung
+	# object building
 	cs = Audio(path, export_path, file,3, 10)
-	#Einbettung der Nachricht im Signal
+	#encode signal
 	cs.encode(msg, export_path)
 
 	print(path)
