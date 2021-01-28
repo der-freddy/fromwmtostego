@@ -22,8 +22,7 @@ class Embedded(object):
 			self.sr = sr
 		self.size = self.y.size
 		self.ceps = self.hanniPC(self.y)
-		self.can = self.Candidates()
-		self.seg_size, self.msg_len = self.movWin()
+
 
 	# Auto Ceptrum with windowing
 	def getAC(self, data):
@@ -51,52 +50,7 @@ class Embedded(object):
 		ceps = np.abs(np.fft.ifft(x))
 
 		return ceps
-	#estimat delay candidates
-	def Candidates(self):
-		ceps_mean = np.mean(self.ceps[8:44])
-		peaks, pros = find_peaks(self.ceps[0:45], distance=3, width=0.9, height=ceps_mean)
-		clipped_data = peaks[(peaks > 10)]
-		sort = np.sort(self.ceps[clipped_data])
-		sort = sort[::-1]
-		sort = sort[:2]
 
-		result = np.where(self.ceps == sort[0])
-		result = np.append(result, np.where(self.ceps == sort[1]))
-		return result
-
-	#Moving Window for segment size
-	def movWin(self):
-		w = 2000
-		s = 0
-
-		seg_ceps = self.hanniPC(self.y[s:w])
-
-		null = seg_ceps[self.can[0]]
-		one = seg_ceps[self.can[1]]
-
-		while null > one:
-			step = 200
-			seg_ceps = self.hanniPC(self.y[s:w])
-			null = seg_ceps[self.can[0]]
-			one = seg_ceps[self.can[1]]
-
-			s = s+step
-			w = w+step
-		size = (s+w)/2
-		msg_len = round(float(float(self.y.size)/float(size)))-2
-		print(msg_len)
-		if msg_len%8:
-			r = msg_len%8
-			c = np.abs(r-8)
-			msg_len = msg_len+c
-		msg_len = msg_len+2
-
-		seg_size = int(self.y.size/msg_len)
-		
-
-		print(seg_size)
-		print(msg_len)
-		return seg_size, msg_len
 
 	#decoding message
 	def decode(self):
