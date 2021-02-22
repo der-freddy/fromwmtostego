@@ -19,9 +19,9 @@ stego, EchoSig, echo0, echo1, key = audio.encode(msg, epath, key)
 
 
 id_p = np.where(key.oe == 1)
-id_n = np.where(key.oe == -1)
 
-Id = np.where((key.oe == 1) | (key.oe == -1)) 
+
+
 #print((id_p[0]))
 #print((id_n[0]))
 #print((Id[0]))
@@ -31,10 +31,8 @@ Id = np.where((key.oe == 1) | (key.oe == -1))
 
 hann = np.hanning(key.seedlen)
 
-print(id_p[0][0])
-pos = id_p[0]*key.seedlen
-print(pos[0])
-
+pos = (id_p[0]*100)+55125
+print(pos)
 
 
 ###Positive Values only
@@ -79,7 +77,7 @@ print(pos[0])
 #plt.plot(key.sig)
 #plt.plot(signal)
 plt.plot(key.sig)
-plt.plot(key.fil)
+#plt.plot(pos)
 plt.show()
 
 ###Key output

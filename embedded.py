@@ -3,7 +3,7 @@
 #EMBEDDED-KLASSE ZUR RUEGEWINNUNG VON INFORMATIONEN#
 ####################################################
 
-import librosa as lro, librosa.display, copy, numpy as np, math, matplotlib.pyplot as plt, scipy as sc, math
+import librosa as lro, librosa.display, copy, numpy as np, math, matplotlib.pyplot as plt, scipy as sc, math, os
 from message import Message
 from scipy.signal import find_peaks
 from scipy import signal
@@ -13,7 +13,7 @@ from audio import Audio
 #Konstrutor
 class Embedded(object):
 	"""docstring for Embedd"""
-	def __init__(self, path,os, du):
+	def __init__(self, path,os, du, multi, msg_len, keypath):
 		if type(path) == str:
 			self.y, self.sr = lro.load(path, mono=True, sr=44100,offset=os, duration=du)
 			self.path = path
@@ -21,26 +21,57 @@ class Embedded(object):
 			self.y = path
 			self.sr = sr
 		self.size = self.y.size
-		self.ceps = self.hanniPC(self.y)
+		self.hann = np.hanning(multi)
+		self.msg_len = msg_len
+		self.segsize = int(math.floor(self.size/msg_len))
+		self.sym = math.floor(self.segsize/multi)
+		self.multi = multi
+		self.keypath = keypath
+		self.position = self.buildKey()
+		self.ceps = self.keyCeps()
+		self.peaks = self.Peaks()
+		self.c1, self.c2 = self.Can()
+		self.msg = self.Decode()
 
 
-	# Auto Ceptrum with windowing
-	def getAC(self, data):
-		spec = np.fft.fft(data)
-		spec = np.abs(np.log(spec))**2
-		ceps = np.abs(np.fft.ifft(spec))
+	def keyCeps(self):
 
-		return ceps
-	#Copy object
-	def copy(self):
-		copy = Embedded(librosa.util.example_audio_file(), 0, 10)
-		copy.y = self.y
-		copy.sr = self.sr
-		copy.size = copy.y.size
-		copy.candidates = self.candidates
-		copy.ceps = copy.CepsSeg(copy.y)
+		size = (self.position.shape[1]*self.multi)
+		data = np.zeros([self.msg_len, size], dtype=float)
 
-		return copy		
+		n=0
+
+		for i in self.position:
+			row = np.zeros(0)
+			for j in i:
+				row = np.append(row, self.y[j:j+self.multi]*self.hann)
+			data[n] = row
+			n = n+1
+
+		for i in range(0, self.msg_len):
+			data[i] = self.Ceps(data[i])
+
+		return data
+
+	def buildKey(self):
+		text_file = open(self.keypath, 'r')
+		keyseedtxt = text_file.read().split(';')
+		keyseed = np.zeros(len(keyseedtxt), dtype=int)
+
+		for i in range(0, len(keyseedtxt)):
+			keyseed[i] = keyseedtxt[i]
+
+		id_p = np.where(keyseed == 1)
+		pos = id_p[0]*self.multi
+		pos = id_p[0]
+		
+
+		all_pos = (pos*self.multi)+self.segsize*0
+
+		for i in range(1, self.msg_len):
+			all_pos = np.vstack((all_pos, (pos*self.multi)+self.segsize*i))
+
+		return all_pos
 
 	#Cepstrum with windowing
 	def Ceps(self, array):
@@ -52,212 +83,59 @@ class Embedded(object):
 		return ceps
 
 
-	#decoding message
-	def decode(self):
-		msg = Message('')
-		for i in range(2, int(self.msg_len)):
+	def Peaks(self):
+		peaks = np.zeros(0, dtype=int)
 
-			m = self.seg_size*i
-			ceps = self.hanniPC(self.y[m:m+self.seg_size])
+		for row in self.ceps:
+			peak, _ = find_peaks(row[10:44])
 
-			if ceps[self.can[0]] > ceps[self.can[1]]:
-				msg.mb.append(False)
-				
-			elif ceps[self.can[0]] < ceps[self.can[1]]:
-				msg.mb.append(True)
-		#print(self.size)
-		#print(self.seg_size)
-		#print(self.msg_len)
-		#print(msg.mb)
-		msg.bitToString()
-		
-		print(msg.msg)
+			ceps_mean = np.mean(row[peak+10])
+
+			peak, _ = find_peaks(row[10:44], height=ceps_mean)
+
+			peak =peak+10
+
+			max_v = np.argmax(row[peak])
+
+			peaks = np.append(peaks, int(peak[max_v]))
+
+		return peaks
 
 
-	#Power-Cepstrum with windowing
-	def hanniPC(self, array):
-		hann = np.hanning(array.size)
-		x = np.fft.fft(array*hann)
-		x = (x)**2
-		x = (np.log(x))
-		ceps = np.abs(np.fft.ifft(x))**2
-		return ceps
 
-	#Auto-Cepstrum with windowing
-	def hanniAC(self, array):
-		hann = np.hanning(array.size)
-		ceps = np.abs(np.fft.ifft(np.log((np.fft.fft(array*hann)))**2))
-		return ceps
+	#def Peaks(self):
+	#	
+	#	peaks = np.zeros(0)
+	#	for row in self.ceps:
+	#		peak, _ = find_peaks(row[0:44])
+	#		ceps_mean = np.mean(row[peak])
+	#		peak, _ = find_peaks(row[0:44], height=ceps_mean)
+	#		#print(peak)
+	#		max_v = np.argmax(row[peak])
+	#		#print(peak[max_v])
+	#		peaks = np.append(peaks, peak[max_v])
+	#	return peaks
 
-	#cepstrum overlay
-	def combinedHanni(self):
-		n = 8
-		size =  int(math.floor(self.size/n))*n
-		new = self.y[:size]
-		segments =   np.reshape(new, (n, new.size/n))
-		ceps = np.zeros(new.size/n)
+	def Can(self):
 
-		for i in range(0,n):
-			ceps = ceps + self.hanniPC(segments[i])
+		can1 = int(self.peaks[0])
+		can2 = 0
+		b = 0
 
-		return ceps
+		while b == 0:
+			for i in self.peaks:
+				if i != can1:
+					b = 1
+					can2 = int(i)
 
-	#build self-referential echo
-	def selfEcho(self, delay, m, n):
-		copy = self.copy()
-		
-		A = np.zeros((n-m)+delay)
-		B = self.y[m:n]
+		return can1, can2
+	def Decode(self):
+		msg = np.zeros(0)
 
-		for i in range(0, B.size):
-			A[i+delay] = B[i]
+		for i in self.peaks:
+			if i == self.c1:
+				msg = np.append(msg, int(0))
+			elif i == self.c2:
+				msg = np.append(msg, int(1))
 
-		for i in range(0, B.size):
-			A[i] = B[i]+A[i]
-
-		copy.y = A
-		copy.size = copy.y.size
-
-		return copy
-
-	#Auto-Cepstrum
-	def ACSeg(self, array):
-		x = (np.fft.fft(array))
-		x = np.abs(np.log(x))**2
-		AC = np.abs(np.fft.ifft(x))
-		return AC
-
-	#Berchnung Segmentgroesse (old)
-	def segSize(self):
-
-		m = 0
-		n = self.size
-		ws = 2000
-		steps = 500
-		can0 = self.candidates[0]
-		can1 = self.candidates[1]
-		check = False
-
-		while check == False:
-			hannipc = self.hanniPC(self.y[m:m+1000])
-
-			value0 = hannipc[can0]
-			value1 = hannipc[can1]
-
-			if value0 > value1:
-				check = False
-			else:
-				check = True
-			size = m
-
-			m = m+500
-
-		segs = int(math.floor(self.size/size))
-
-		return int(math.floor(self.size/segs)), segs
-
-
-#	def decoding(self):
-#		
-#		if self.candidates.size != 2:
-#			print('Kein Decoding')
-#		else:
-#
-#			size, segs = self.segSize()
-#			msg = Message('')
-#			
-#			for i in range(0, size*segs, size):
-#				
-#				print(i)
-#				print(i+size)
-#				hanni = self.hanniPC(self.y[i:i+size])
-#				if hanni[self.candidates[0]] > hanni[self.candidates[1]]:
-#					msg.mb.append(False)
-#				else:
-#					msg.mb.append(True)
-#			msg.bitToString()
-#			print(msg.msg)
-
-
-#	def getCandidate(self):
-#
-#		can = self.getPeaks(self.ceps, False)
-#		for i in can[2:]:
-#			if i%can[0] == 0:
-#				can = np.delete(can, np.where(can == i))
-#			if i%can[1] == 0:
-#				can = np.delete(can, np.where(can == i))
-#			if i%(can[0]+can[1]) == 0:
-#				can = np.delete(can, np.where(can == i))
-#
-#
-#		while can.size > 2:
-#			value = min(self.ceps[can])
-#			can = np.delete(can, np.where(self.ceps[can] == value))
-#
-#		check_peaks = self.checkCandidates()
-#
-#		for i in can:
-#			if i not in check_peaks:
-#				can = np.delete(can, np.where(can == i))
-#			else:
-#				break
-#
-#		
-#		if can.size == 0:
-#			print('Keine Kandidaten gefunden, keine Entschluesselung')
-#
-#		elif can.size == 1:
-#			print('Einen Kandidaten gefunden, keine Entschluesselung')
-#
-#
-#
-#		return can
-
-
-#	def checkCandidates(self):
-#		n = 8
-#		size = int(math.floor(self.size/n))*n
-#		new = self.y[:size]
-#
-#		segments = np.reshape(new, (n, new.size/n))
-#		ceps = np.zeros(new.size/n)
-#
-#		for i in range(0,n):
-#			ceps = ceps + self.hanniPC(segments[i])
-#
-#		ceps_mean = np.mean(ceps[8:44])
-#
-#		peaks, _ = find_peaks(ceps[8:44], distance=5, height=ceps_mean)
-#		peaks = peaks[(8 < peaks)]
-#
-#		peaks = peaks + 8
-#
-#		for i in peaks[2:]:
-#			if i%peaks[0] == 0:
-#				peaks = np.delete(peaks, np.where(peaks == i))
-#			if i%peaks[1] == 0:
-#				peaks = np.delete(peaks, np.where(peaks == i))
-#			if i%(peaks[0]+peaks[1]) == 0:
-#				peaks = np.delete(peaks, np.where(peaks == i))
-#
-#
-#		return peaks
-
-#	def getPeaks(self, ceps, mean):
-#
-#		if mean:
-#			#mean wurde entfernt
-#			peaks, _ = find_peaks(ceps[0:44], distance=5)
-#			peaks = peaks[(8 < peaks)]
-#		else:
-#			ceps_mean = np.mean(ceps[8:44])
-#			peaks, _ = find_peaks(ceps[0:44], distance=5, height=ceps_mean)
-#			peaks = peaks[(8 < peaks)]
-#
-#
-#		return peaks
-
-#	def SegPeaks(self, ceps, max):
-#		peaks = find_peaks(ceps[0:45], threshold=0.01)[0]
-#		return peaks
+		return msg

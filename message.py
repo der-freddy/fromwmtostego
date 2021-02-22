@@ -11,8 +11,8 @@ class Message(object):
 		self.mb = bitarray(bitstream)
 		self.len = len(self.mb)
 		self.delays = np.empty([3, self.len])
-		self.delay0 = 10
-		self.delay1 = 15
+		self.delay0 = d0
+		self.delay1 = d1
 		self.dte = list(range(0, 44, 1))
 		for i in range(0, 44):
 			self.dte[i] =  math.exp(-0.5*(float(i)/8))

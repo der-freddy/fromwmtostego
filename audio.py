@@ -10,7 +10,7 @@ import librosa as lro, librosa.display, copy, numpy as np, math, matplotlib.pypl
 #Konstrutor
 class Audio(object):
 	"""docstring for Audio"""
-	def __init__(self, path, export,name, os, du):
+	def __init__(self, path, export,name, os, du, decay):
 		self.path = path
 		self.export = export
 		self.y, self.sr = lro.load(path, mono=True, sr=44100, offset=os, duration=du)
@@ -18,8 +18,9 @@ class Audio(object):
 		self.os = os
 		self.du = du
 		self.name = name
-		self.delay0 = 15
-		self.delay1 = 20
+		self.decay = decay
+		#self.delay0 = 10
+		#self.delay1 = 15
 		#self.dte = list(range(0, 44, 1))
 		#for i in range(0, 44):
 		#	self.dte[i] =  math.exp(-0.5*(float(i)/8))
@@ -29,7 +30,7 @@ class Audio(object):
 		#self.ratio1 = 0.5
 	#Copy Objekt
 	def copy(self):
-		return Audio(self.path, self.export,self.name, self.os, self.du)
+		return Audio(self.path, self.export,self.name, self.os, self.du, self.decay)
 
 	#Get Audiosignal
 	def getWv(self):
@@ -119,22 +120,7 @@ class Audio(object):
 		return stego
 
 	#Erstellung Negativecho
-	def buildNecho(self, delay, ratio):
-		echo = self.copy()
-		y = echo.y
-		print('delta')
-		
-		delta = delay # delta in Frames		
-		print(delta)
-		CopyArray = np.copy(y)
-		
-		for i in range(0, echo.size):
-			if i<delta:
-				echo.y[i] = 0
-			else:
-				echo.y[i] = CopyArray[i-delta]*ratio
 
-		return echo
 
 	#Erstellung Doppel-Echo
 	def buildDecho(self, delay, ratio):
@@ -271,55 +257,42 @@ class Audio(object):
 			stego = self.copy()
 			print('No Message embedded')			
 		else:
+
 			echo0 = self.buildEcho(msg.delay0, msg.ratio0)
 			echo1 = self.buildEcho(msg.delay1, msg.ratio1)
 			EchoSig = self.EchoSignal(echo0, echo1, msg)
 
-			#EchoSig = self.EchoSignalKey(echo0, echo1, msg, key)
 
-			#self.oe_decay(msg)
-
-			#stego = self.simpleMix(EchoSig)
-			#print(stego.y[0:20])
 			stego = self.copy()
+			print(key.fil.size)
+			print(EchoSig.y.size)
+			print(self.y.size)
 
-			stego.y = self.y+((key.sig*EchoSig.y))	
+			stego.y = self.y+((key.fil*EchoSig.y*self.decay))	
 
 			print('Message embedded')
-		
-		print(msg.mb)
-		#stego.write(key)
-
-
-
-
-		#f = open(self.export+'_key.txt', 'a')
-		#
-		#for i in range(0, len(key.oe)-1):
-		#	f.write(str(int(key.oe[i]))+';')
-		#f.write(str(int(key.oe[len(key.oe)-1])))
-		#f.close()
-
-		#with open(self.export+'_key.txt', 'a') as f:
-		#	for item in key.fil:
-		#		print >> f, item
-
-		#echo0.write('/home/fsukop/Documents/repos/thesis/echo_hiding/audio/decho/44 Pianisten 01-Promenade_echo0.wav')
 
 		return stego, EchoSig, echo0, echo1, key
 
 		#return stego
 
 	#Speicher Traegersignal
-	def write(self, key):
+	def write(self, key, msg):
 		path = self.export
 		#lro.output.write_wav(path, self.y, self.getSampling())
-		print(path)
+		#print(path)
 		f = open(self.export+'_key.txt', 'a')
+		f.write(str(int(key.oe[0])))
+		for i in range(1, len(key.oe)-1):
+			f.write(';'+str(int(key.oe[i])))
+		#f.write(str(int(key.oe[len(key.oe)-1])))
 		
-		for i in range(0, len(key.oe)-1):
-			f.write(str(int(key.oe[i]))+';')
-		f.write(str(int(key.oe[len(key.oe)-1])))
+		f.close()
+
+		f = open(self.export+'_msg.txt', 'a')
+		f.write(str(msg.mb[0]))
+		for i in range(1, msg.len):
+			f.write(';'+str(msg.mb[i]))
 		f.close()
 
 		sf.write(path, self.y, self.getSampling())
