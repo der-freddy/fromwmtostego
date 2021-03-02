@@ -6,18 +6,22 @@ from scipy.signal import find_peaks
 import bitarray
 from embedded import Embedded
 
-path = 'export/44 Pianisten 01-Promenade.wav'
+file = '44 Pianisten 01-Promenade.wav'
+inp = 'export'
+path = os.path.join(inp, file)
+pathtxt = os.path.join(inp, file+"_key.txt")
 
 
-cs = Embedded(path, None, None)
 
-win = 100
-start = 2400
+cs = Embedded(path, None, None, 100, 8, pathtxt)
+
+win = 2000
+start = 165375
 step = 50
 j = 0
 #arr = np.empty([100,int(start/step)], dtype=float)
 arr = np.empty([int(start/step),win], dtype=float)
-print(arr[0,:])
+#print(arr[0,:])
 
 for i in range(start, start+1000, step):
 	
@@ -30,8 +34,12 @@ ip = False
 
 while ip != 'True':
 	ip = input('Input: ')
-	plt.plot(arr[int(ip),0:44])
+	plt.plot(arr[int(ip),0:44], label='Cepstrum Window '+str(ip))
+	plt.legend()
+	plt.xlabel('Quefrency')
+	plt.ylabel('Magnitude')
 	plt.show()
+
 
 #randomList = []
 #

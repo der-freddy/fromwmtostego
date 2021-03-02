@@ -6,34 +6,48 @@ from scipy.signal import find_peaks
 import bitarray
 from embedded import Embedded
 
-path = 'export/44 Pianisten 01-Promenade.wav'
+file = '44 Pianisten 01-Promenade.wav'
+inp = 'export'
+path = os.path.join(inp, file)
+pathtxt = os.path.join(inp, file+"_key.txt")
 
 
-cs = Embedded(path, None, None)
+cs = Embedded(path, 5, 30, 100, 8, pathtxt)
 
-randomList = []
 
-leng = 50
+
+leng = 100
 han = np.hanning(leng)
 
-for i in range(0, 100):
-    # any random numbers from 0 to 1000
-	ran = rn.randint(0+i, cs.size-i)
-	randomList.append(ran)
+for j in range(0,100):
 
-print(randomList)
+	randomList = []
+	for i in range(0, 1000):
+	    # any random numbers from 0 to 1000
+		ran = rn.randint(1, cs.size-leng)
+		randomList.append(ran)
 
-arr = []
 
-for i in randomList:
-	win = cs.y[i:i+leng]*han
-	arr = np.append(arr, win)
-
-ceps = cs.Ceps(arr[0:])
-
-plt.plot(ceps[0:44])
-plt.show()
-
+	
+	randomList = np.sort(randomList)
+	
+	#print(randomList)
+	
+	arr = []
+	
+	for i in randomList:
+		win = cs.y[i:i+leng]*han
+		arr = np.append(arr, win)
+	
+	ceps = cs.Ceps(arr[0:])
+	
+	plt.plot(ceps[0:44], label='Random decoding (unknown segments)')
+	plt.legend()
+	plt.xlabel('Quefrency')
+	plt.ylabel('Magnitude')
+	#plt.show()
+	plt.savefig('/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/doku/random_decoing/unkown_segments/oe/length_100/number_1000/detail/'+str(j)+'.png')
+	plt.close()
 #for file in os.listdir(path):
 #	print(file)
 #	cs = Embedded(path+file, None, None)

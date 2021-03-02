@@ -4,13 +4,27 @@ from message import Message
 from keyGen import Keygen
 from audio import Audio
 
-msg = Message('0101010110101010', 15, 20)
+rand_n = np.random.rand(32)
+
+rand_n[np.where(rand_n < 0.5)] = 0
+rand_n[np.where(rand_n >= 0.5)] = 1
+
+print(str(rand_n))
+
+test = str('')
+
+for i in rand_n:
+	test = test+str(int(i))
+
+print(test)
+
+msg = Message(test, 15, 20)
 
 ipath = 'import'
-epath = 'export/test/0101010101010101/test_10/'
+epath = '/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/test_data_03/'
 #audio = Audio(ipath, epath, 'test.wav', 7, 10)
 
-time=int(10)
+time=int(30)
 
 key = Keygen(time*44100, msg.len)
 

@@ -9,7 +9,7 @@ from scipy.signal import find_peaks
 
 file = "44 Pianisten 01-Promenade.wav"
 
-inp = "export"
+inp = "/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/test_data_03/01010101/"
 
 path = os.path.join(inp, file)
 pathtxt = os.path.join(inp, file+"_key.txt")
@@ -45,7 +45,7 @@ rand_n = np.random.rand(sym)
 rand_n[0] = 0
 rand_n[sym-1] = 0
 
-rand_n[np.where(rand_n < 0.9)] = 0
+rand_n[np.where(rand_n < 0.5)] = 0
 rand_n[np.where(rand_n >= 0.9)] = 1
 
 #keyseed = rand_n
@@ -62,13 +62,13 @@ Id = np.where((keyseed == 1))
 
 
 pos = id_p[0]
-all_pos = (pos*100)+55125*0
+all_pos = (pos*100)+165375*0
 
 #neg = id_n[0]*100
 
 for i in range(1, msglen):
 
-	all_pos = np.vstack((all_pos, (pos*100)+55125*i))
+	all_pos = np.vstack((all_pos, (pos*100)+165375*i))
 	#all_pos = np.append(all_pos, (pos*100)+55125*i)
 
 

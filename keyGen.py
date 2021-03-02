@@ -44,7 +44,7 @@ class Keygen(object):
 
 		h = sc.signal.get_window('triang', 50)
 		fil = sc.signal.convolve(sig, h/h.sum())
-
+		
 
 		diff = self.size - (fil.size)
 		

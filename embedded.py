@@ -72,7 +72,6 @@ class Embedded(object):
 			all_pos = np.vstack((all_pos, (pos*self.multi)+self.segsize*i))
 
 		return all_pos
-
 	#Cepstrum with windowing
 	def Ceps(self, array):
 		hann = np.hanning(array.size)
@@ -86,6 +85,7 @@ class Embedded(object):
 	def Peaks(self):
 		peaks = np.zeros(0, dtype=int)
 
+
 		for row in self.ceps:
 			peak, _ = find_peaks(row[10:44])
 
@@ -98,7 +98,7 @@ class Embedded(object):
 			max_v = np.argmax(row[peak])
 
 			peaks = np.append(peaks, int(peak[max_v]))
-
+			
 		return peaks
 
 

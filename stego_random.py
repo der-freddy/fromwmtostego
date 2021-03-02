@@ -10,13 +10,15 @@ file = "44 Pianisten 01-Promenade.wav"
 
 inp = "export"
 
+
+
 path = os.path.join(inp, file)
 pathtxt = os.path.join(inp, file+"_key.txt")
 
 #path = 'export/44 Pianisten 01-Promenade.wav'
 #pathtxt = 'export/44 Pianisten 01-Promenade.wav_key.txt'
 
-cs = Embedded(path, None, None)
+cs = Embedded(path, None, None, 100, 8, pathtxt)
 
 text_file = open(pathtxt, 'r')
 
@@ -48,8 +50,8 @@ for j in range(0,50):
 	rand_n[0] = 0
 	rand_n[sym-1] = 0
 	
-	rand_n[np.where(rand_n < 0.9)] = 0
-	rand_n[np.where(rand_n >= 0.9)] = 1
+	rand_n[np.where(rand_n < 0.5)] = 0
+	rand_n[np.where(rand_n >= 0.5)] = 1
 	
 	keyseed = rand_n
 	
@@ -81,7 +83,7 @@ for j in range(0,50):
 	ceps = cs.Ceps(data[:])
 	
 	plt.plot(ceps[0:50])
-	plt.savefig('//media/sf_X_DRIVE/Documents/repros/fromwmtostego/konsultationen/28012021/randomkey/random/'+str(j)+'.png')
-
+	plt.savefig('/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/doku/randomkey_decoding/'+str(j)+'.png')
+	#plt.show()
 
 	plt.close()
