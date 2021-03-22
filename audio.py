@@ -10,15 +10,18 @@ import librosa as lro, librosa.display, copy, numpy as np, math, matplotlib.pypl
 #Konstrutor
 class Audio(object):
 	"""docstring for Audio"""
-	def __init__(self, path, export,name, os, du, decay):
+	def __init__(self, path, export, name, os, du, decay, array_signal=None, write_file=True):
 		self.path = path
 		self.export = export
 		self.y, self.sr = lro.load(path, mono=True, sr=44100, offset=os, duration=du)
-		self.size = self.y.size
+		if array_signal is not None:
+			self.y = array_signal
+		self.size = len(self.y)
 		self.os = os
 		self.du = du
 		self.name = name
 		self.decay = decay
+		self.write_file = write_file  # True if changes should be written to file
 		#self.delay0 = 10
 		#self.delay1 = 15
 		#self.dte = list(range(0, 44, 1))
@@ -30,7 +33,7 @@ class Audio(object):
 		#self.ratio1 = 0.5
 	#Copy Objekt
 	def copy(self):
-		return Audio(self.path, self.export,self.name, self.os, self.du, self.decay)
+		return Audio(self.path, self.export,self.name, self.os, self.du, self.decay, self.y)
 
 	#Get Audiosignal
 	def getWv(self):
@@ -203,7 +206,8 @@ class Audio(object):
 			print(EchoSig.y.size)
 			print(self.y.size)
 
-			stego.y = self.y+((key.fil*EchoSig.y*self.decay))	
+			stego.y = self.y+(key.fil*EchoSig.y*self.decay)
+			# stego.y = self.y+(EchoSig.y*self.decay)    # without key signal (no improvement)
 
 			print('Message embedded')
 
@@ -230,4 +234,5 @@ class Audio(object):
 			f.write(';'+str(msg.mb[i]))
 		f.close()
 
-		sf.write(path, self.y, self.getSampling())
+		if self.write_file:
+			sf.write(path, self.y, self.getSampling())
