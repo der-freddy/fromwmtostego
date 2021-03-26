@@ -82,7 +82,7 @@ class Audio(object):
 			if i<delta:
 				echo.y[i] = 0
 			else:
-				echo.y[i] = CopyArray[i-delta]
+				echo.y[i] = CopyArray[i-delta]*ratio
 
 		return echo
 
@@ -193,8 +193,8 @@ class Audio(object):
 			print('No Message embedded')			
 		else:
 
-			echo0 = self.buildEcho(msg.delay0, msg.ratio0)
-			echo1 = self.buildEcho(msg.delay1, msg.ratio1)
+			echo0 = self.buildEcho(msg.delay0, 0)
+			echo1 = self.buildEcho(msg.delay1, 1)
 			EchoSig = self.EchoSignal(echo0, echo1, msg)
 
 
@@ -203,7 +203,9 @@ class Audio(object):
 			print(EchoSig.y.size)
 			print(self.y.size)
 
-			stego.y = self.y+((key.fil*EchoSig.y*self.decay))	
+			stego.y = self.y+((key.fil*EchoSig.y))	
+
+			#stego.y = self.y
 
 			print('Message embedded')
 

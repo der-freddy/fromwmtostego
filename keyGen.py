@@ -25,9 +25,9 @@ class Keygen(object):
 		rand_n[0] = 0
 		rand_n[self.sym-1] = 0
 
-		rand_n[np.where(rand_n < 0.5)] = 0
+		rand_n[np.where(rand_n < 0.7)] = 0
 		#rand_n[np.where(np.logical_and(rand_n>=0.8, rand_n<0.9))] = -1
-		rand_n[np.where(rand_n >= 0.5)] = 1
+		rand_n[np.where(rand_n >= 0.3)] = 1
 
 		sig = np.zeros(self.seedlen*self.sym)
 

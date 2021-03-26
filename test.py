@@ -18,10 +18,10 @@ for i in rand_n:
 
 print(test)
 
-msg = Message(test, 15, 20)
+msg = Message('01010101', 13, 18)
 
 ipath = 'import'
-epath = '/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/test_data_03/'
+epath = '/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/dsss_test_data/'
 #audio = Audio(ipath, epath, 'test.wav', 7, 10)
 
 time=int(30)
@@ -34,7 +34,7 @@ for file in os.listdir(ipath):
 	print(os.path.join(ipath, file))
 	inp = os.path.join(ipath, file)
 	out = os.path.join(epath, file)
-	audio = Audio(inp, out, 'test.wav', 5, time, 0.3)
+	audio = Audio(inp, out, 'test.wav', 5, time, 0.2)
 	stego, EchoSig, echo0, echo1, key = audio.encode(msg, out, key)
 	stego.write(key, msg)
 

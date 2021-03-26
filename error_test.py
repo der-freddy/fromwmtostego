@@ -9,7 +9,7 @@ from scipy.signal import find_peaks
 
 #file = "44 Pianisten 01-Promenade.wav"
 
-ipath = "/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/test_data_03/32bit_rand/"
+ipath = '/media/sf_X_DRIVE/Documents/repros/fromwmtostego/export/doku/moving_window_newalgo/data/'
 
 
 
@@ -23,9 +23,10 @@ for file in os.listdir(ipath):
 	print(file)
 	inp = os.path.join(ipath, file)
 	pathtxt = os.path.join(ipath+"txt/", file+"_key.txt")
-	cs = Embedded(inp, None, None, 100, 32, pathtxt)		
+	cs = Embedded(inp, None, None, 100, 8, pathtxt)
 	print(cs.peaks)
 	print(cs.msg)
+	print('-------------------------------')
 
 
 
